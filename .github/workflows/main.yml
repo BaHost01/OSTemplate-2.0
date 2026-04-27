@@ -1,4 +1,4 @@
-name: MyOS x64 Ultimate Pipeline
+name: SimpleOS x64 Pipeline
 
 on:
   push:
@@ -29,14 +29,14 @@ jobs:
           
           # Rufus & Windows Metadata
           echo "[AutoRun]" > iso/autorun.inf
-          echo "label=MyOS x64 Ultimate Edition" >> iso/autorun.inf
-          echo "MyOS x64 Ultimate v1.0" > iso/version.txt
+          echo "label=SimpleOS x64 Ultimate Edition" >> iso/autorun.inf
+          echo "SimpleOS x64 Ultimate v1.0" > iso/version.txt
           
           cat <<EOF > iso/boot/grub/grub.cfg
           set timeout=2
           set default=0
           
-          menuentry "MyOS x64 Ultimate (USB Boot Supported)" {
+          menuentry "SimpleOS x64 Ultimate (USB Boot Supported)" {
               multiboot /boot/installer.bin
               module /boot/target.bin "target_kernel"
               boot
@@ -45,10 +45,10 @@ jobs:
           
           # Create Hybrid ISO (Bootable from USB and CD)
           # -volid is what Rufus shows as the 'Name'
-          grub-mkrescue -o MyOS-Ultimate-x64.iso iso -- -volid "MYOS_X64" -publisher "MyOS Development Team"
+          grub-mkrescue -o SimpleOS-x64.iso iso -- -volid "SIMPLEOS_X64" -publisher "SimpleOS Development Team"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MyOS-x64-Distribution
-          path: MyOS-Ultimate-x64.iso
+          name: SimpleOS-x64-Distribution
+          path: SimpleOS-x64.iso

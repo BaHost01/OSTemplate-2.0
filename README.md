@@ -1,10 +1,11 @@
-# MyOS x64 Ultimate
+# SimpleOS x64
 
+[![SimpleOS x64 Pipeline](https://github.com/BaHost01/OSTemplate-2.0/actions/workflows/main.yml/badge.svg)](https://github.com/BaHost01/OSTemplate-2.0/actions/workflows/main.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Arch](https://img.shields.io/badge/arch-x86__64-orange.svg)
 ![Status](https://img.shields.io/badge/status-semi--production-green.svg)
 
-**MyOS x64 Ultimate** is a high-performance, hybrid kernel operating system designed with a "Clean-Room" NT-inspired architecture. It supports both **Linux (ELF)** and **Windows (PE)** binary formats, featuring a robust 64-bit executive.
+**SimpleOS x64** is a high-performance, hybrid kernel operating system designed with a "Clean-Room" NT-inspired architecture. It supports both **Linux (ELF)** and **Windows (PE)** binary formats, featuring a robust 64-bit executive.
 
 ## 🚀 Key Features
 

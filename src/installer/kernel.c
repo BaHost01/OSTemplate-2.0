@@ -29,7 +29,7 @@ void install(struct multiboot_info* info) {
     struct fat32_bpb bpb;
     memset(&bpb, 0, sizeof(struct fat32_bpb));
     bpb.jmp[0] = 0xEB; bpb.jmp[1] = 0x3C; bpb.jmp[2] = 0x90;
-    memcpy(bpb.oem, "MYOS INST", 8);
+    memcpy(bpb.oem, "SIMPLEOS", 8);
     bpb.bytes_per_sector = 512;
     bpb.sectors_per_cluster = 8;
     bpb.reserved_sectors = 32;

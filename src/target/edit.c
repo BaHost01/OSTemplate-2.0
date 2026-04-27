@@ -29,7 +29,7 @@ void editor_main() {
     memset(es, 0, sizeof(EditorState));
     
     vga_clear();
-    vga_puts("--- MyOS Editor (Nano-lite) ---\n");
+    vga_puts("--- SimpleOS Editor (Nano-lite) ---\n");
     vga_puts("Press ESC to exit.\n");
     
     while (1) {

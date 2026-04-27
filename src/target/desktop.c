@@ -24,7 +24,7 @@ void desktop_show() {
     vga_clear();
     vga_set_color(0x0F, 0x01); // Background
     vga_puts("================================================================================\n");
-    vga_puts("  MyOS x64 Ultimate - Professional Desktop Environment                         \n");
+    vga_puts("  SimpleOS x64 Ultimate - Professional Desktop Environment                         \n");
     vga_puts("================================================================================\n");
     vga_puts("\n");
     vga_puts("  [F1] File Explorer   [F2] Text Editor   [F3] Package Manager   [F4] Terminal \n");

@@ -9,7 +9,7 @@
 
 ## Reporting a Vulnerability
 
-We take the security of MyOS x64 Ultimate seriously. If you find a security vulnerability, please do not open a public issue. Instead, follow these steps:
+We take the security of SimpleOS x64 Ultimate seriously. If you find a security vulnerability, please do not open a public issue. Instead, follow these steps:
 
 1. **Email us:** Send a detailed report to `security-report@example.com` (Placeholder).
 2. **Details:** Include a description of the vulnerability, steps to reproduce, and potential impact.

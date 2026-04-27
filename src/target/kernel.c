@@ -35,7 +35,7 @@ void shell() {
                 } else if (strcmp(line, "desktop") == 0) {
                     desktop_show();
                 } else if (strcmp(line, "version") == 0) {
-                    vga_puts("MyOS x64 Ultimate v1.0 (Clean-Room NT)\n");
+                    vga_puts("SimpleOS x64 Ultimate v1.0 (Clean-Room NT)\n");
                 } else if (strcmp(line, "edit") == 0) {
                     editor_main();
                 } else if (strncmp(line, "pkg install ", 12) == 0) {
@@ -80,7 +80,7 @@ void kmain(uint32_t magic, struct multiboot_info* info) {
     
     // Welcome to the high-performance x64 environment
     vga_set_color(0x0E, 0x00); // Gold
-    vga_puts("--- MyOS x64 Ultimate - High Performance Kernel ---\n");
+    vga_puts("--- SimpleOS x64 Ultimate - High Performance Kernel ---\n");
     vga_puts("Architecture: x86_64 Long Mode | Boot: GPT/UEFI Ready\n");
     vga_puts("System initialized. Type 'desktop' for UI or 'help' for commands.\n");
     
