@@ -1,4 +1,4 @@
-name: SimpleOS x64 Pipeline
+name: SimpleOS x64 Ultimate Pipeline
 
 on:
   push:
@@ -10,6 +10,8 @@ jobs:
   build:
     name: Build x64 Kernel & GPT ISO
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       
@@ -43,9 +45,28 @@ jobs:
           }
           EOF
           
-          # Create Hybrid ISO (Bootable from USB and CD)
-          # -volid is what Rufus shows as the 'Name'
+          # Create Hybrid ISO
           grub-mkrescue -o SimpleOS-x64.iso iso -- -volid "SIMPLEOS_X64" -publisher "SimpleOS Development Team"
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: SimpleOS-x64.iso
+          tag_name: latest
+          name: "SimpleOS x64 Ultimate - Latest Build"
+          body: |
+            Automated production build of **SimpleOS x64**.
+            
+            **Included Assets:**
+            - `SimpleOS-x64.iso`: Hybrid boot image (BIOS/UEFI/USB).
+            
+            **Changes:**
+            - Professional NT-style I/O Manager (IRPs).
+            - Updated Driver Signature System.
+            - Hybrid Syscall Support (Linux/NT).
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
