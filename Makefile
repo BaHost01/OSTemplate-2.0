@@ -14,7 +14,8 @@ INSTALLER_OBJS = build/installer/boot.o build/installer/kernel.o $(COMMON_OBJS)
 TARGET_OBJS = build/target/boot.o build/target/kernel.o build/target/edit.o build/target/pkg.o \
               build/target/subsystem.o build/target/object_manager.o build/target/ke.o \
               build/target/pe_loader.o build/target/iomgr.o build/target/wifi.o \
-              build/target/desktop.o build/target/ksod.o build/target/path.o $(COMMON_OBJS)
+              build/target/desktop.o build/target/ksod.o build/target/path.o \
+              build/target/ex.o $(COMMON_OBJS)
 
 all: build/installer.bin build/target.bin iso/myos.iso
 

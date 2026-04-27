@@ -7,15 +7,21 @@
 #include "../common/keyboard.h"
 #include "../common/string.h"
 #include "../common/kheap.h"
+#include "../common/stdio.h"
+#include "../common/serial.h"
+#include "../common/vfs.h"
 #include "edit.h"
 #include "pkg.h"
 #include "subsystem.h"
 #include "iomgr.h"
 #include "desktop.h"
 #include "path.h"
-#include "../common/vfs.h"
-#include "../common/serial.h"
 
+/*
+ * shell - Primary interactive command processor.
+ * Operates in a continuous loop, parsing input and dispatching to 
+ * internal kernel functions or future Ring 3 processes.
+ */
 void shell() {
     char line[80];
     int i = 0;
@@ -35,15 +41,13 @@ void shell() {
                 } else if (strcmp(line, "desktop") == 0) {
                     desktop_show();
                 } else if (strcmp(line, "version") == 0) {
-                    vga_puts("SimpleOS x64 Ultimate v1.0 (Clean-Room NT)\n");
+                    vga_puts("SimpleOS x64 Ultimate v1.0 (Clean-Room NT Architecture)\n");
                 } else if (strcmp(line, "edit") == 0) {
                     editor_main();
                 } else if (strncmp(line, "pkg install ", 12) == 0) {
                     pkg_install(line + 12);
                 } else {
-                    vga_puts("Command not found: ");
-                    vga_puts(line);
-                    vga_putc('\n');
+                    kprintf("Command not found: %s\n", line);
                 }
             }
             
@@ -63,23 +67,38 @@ void shell() {
     }
 }
 
+/*
+ * kmain - The high-level entry point for the x86_64 Long Mode Kernel.
+ * Initializes core hardware subsystems, memory management, and executive managers
+ * before handing control to the user interface.
+ */
 void kmain(uint32_t magic, struct multiboot_info* info) {
+    (void)magic; (void)info;
+
+    /* Initialize critical display and communication interfaces */
     vga_init();
     serial_init();
+    
+    /* Setup Global Descriptor Table and Interrupt Descriptor Table */
     gdt_init();
     idt_init();
+    
+    /* Initialize memory management: Physical PMM, Paging, and Executive Heap */
     paging_init();
+    kheap_init();
+    
+    /* Initialize Virtual File System and Hardware Bus Management */
     vfs_init();
     pci_init();
+    
+    /* Initialize NT-Compatible Executive Subsystems */
     IoInit();
     path_init();
     subsystem_init();
     
-    serial_puts("[Kernel] Serial Logging Active (COM1)\n");
-    serial_puts("[Kernel] x64 Long Mode Initialized\n");
+    serial_puts("[Kernel] SimpleOS x64 Executive Boot Sequence Complete\n");
     
-    // Welcome to the high-performance x64 environment
-    vga_set_color(0x0E, 0x00); // Gold
+    vga_set_color(0x0E, 0x00); // Gold branding
     vga_puts("--- SimpleOS x64 Ultimate - High Performance Kernel ---\n");
     vga_puts("Architecture: x86_64 Long Mode | Boot: GPT/UEFI Ready\n");
     vga_puts("System initialized. Type 'desktop' for UI or 'help' for commands.\n");
