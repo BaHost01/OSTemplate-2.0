@@ -77,6 +77,18 @@ typedef struct _DRIVER_OBJECT {
 } DRIVER_OBJECT, *PDRIVER_OBJECT;
 
 void IoInit();
+
+uint32_t IoCreateDevice(
+    PDRIVER_OBJECT DriverObject,
+    uint32_t DeviceExtensionSize,
+    PUNICODE_STRING DeviceName,
+    uint32_t DeviceType,
+    uint32_t DeviceCharacteristics,
+    BOOLEAN Exclusive,
+    PDEVICE_OBJECT *DeviceObject
+);
+
+void IoDeleteDevice(PDEVICE_OBJECT DeviceObject);
 PIRP IoAllocateIrp(uint8_t StackSize);
 uint32_t IoCallDriver(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 void IoCompleteRequest(PIRP Irp, uint8_t PriorityBoost);
