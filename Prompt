@@ -1,0 +1,168 @@
+Audit the OS. The kernel already exists and works. Do NOT explain theory.
+
+Your job:
+
+- Detect what is missing or weak outside the kernel
+- Fix architecture gaps
+- Propose concrete implementations
+- Prioritize what to build next
+
+Be direct. No fluff.
+
+---
+
+CHECK AND IMPROVE THESE COMPONENTS
+
+1. Syscall Usage / Userland Bridge
+
+- Are syscalls usable from user programs?
+- Is there a libc or syscall wrapper?
+
+If missing:
+→ Define a minimal libc (syscall wrappers + malloc)
+
+---
+
+2. Init System (PID 1)
+
+- Does the OS boot into a real init process?
+
+If missing:
+→ Design a minimal init:
+
+- starts services
+- mounts filesystems
+- launches shell
+
+---
+
+3. Core Userland Tools
+
+- ls, cp, mv, cat, echo exist?
+
+If missing:
+→ Define minimal coreutils set + implementation plan
+
+---
+
+4. Shell
+
+- Is there an interactive shell?
+
+If missing:
+→ Build a minimal shell with:
+
+- command parsing
+- program execution
+- basic scripting
+
+---
+
+5. Filesystem Layer
+
+- Is there a VFS?
+- Can files be mounted/read/written?
+
+If weak:
+→ Redesign filesystem abstraction
+
+---
+
+6. Drivers
+
+Check support for:
+
+- keyboard
+- display (framebuffer or GPU)
+- disk
+- network
+
+→ List missing drivers in priority order
+
+---
+
+7. Graphics (optional but important)
+
+- Only framebuffer or real window system?
+
+If missing:
+→ Propose minimal GUI or keep CLI-first strategy
+
+---
+
+8. Package Management
+
+- Can software be installed/updated?
+
+If missing:
+→ Design simple package system:
+
+- format (tar-based)
+- install/remove/update
+
+---
+
+9. Networking (Userland)
+
+- TCP/IP usable?
+- Any tools (ping, http)?
+
+If missing:
+→ Define minimal networking tools
+
+---
+
+10. Security
+
+- Users/groups exist?
+- Permissions enforced?
+
+→ Identify critical vulnerabilities
+
+---
+
+11. System Services
+
+- Logging?
+- Device manager?
+- Background daemons?
+
+→ Define essential services
+
+---
+
+12. Toolchain
+
+- Can programs be compiled inside the OS?
+
+If missing:
+→ Define minimal dev environment
+
+---
+
+OUTPUT FORMAT
+
+For each section:
+
+- Status: Complete / Partial / Missing
+- Problems
+- Exact fix (implementation-level, not ideas)
+- Priority: Low / Medium / High / Critical
+
+---
+
+FINAL OUTPUT
+
+- Top 5 blockers
+- Next 5 things to build (in order)
+- What to steal instead of building from scratch
+
+---
+
+Do NOT:
+
+- Explain basics
+- Repeat obvious info
+- Be polite
+
+Act like you're finishing the OS, not reviewing it.

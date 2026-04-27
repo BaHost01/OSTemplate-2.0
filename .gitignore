@@ -42,6 +42,10 @@
 *.idb
 *.pdb
 
+# Third Party Source
+Third_Party/
+Thid/
+
 # Kernel Module Compile Results
 *.mod*
 *.cmd

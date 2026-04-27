@@ -1,43 +1,53 @@
-name: Build OS
+name: MyOS x64 Ultimate Pipeline
 
 on:
   push:
+    branches: [ main, master ]
   pull_request:
+    branches: [ main, master ]
 
 jobs:
   build:
+    name: Build x64 Kernel & GPT ISO
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
+      - uses: actions/checkout@v4
+      
+      - name: Install Toolchain
         run: |
           sudo apt update
-          sudo apt install -y build-essential nasm xorriso grub-pc-bin grub-common
+          sudo apt install -y build-essential nasm xorriso mtools clang lld grub-common grub-pc-bin
 
-      - name: Build kernel
-        run: |
-          mkdir -p build
-          make all
+      - name: Build Kernels
+        run: make all
 
-      - name: Create ISO
+      - name: Construct GPT Deployment Image
         run: |
-          mkdir -p iso/boot/grub
-          cp build/kernel.bin iso/boot/kernel.bin
+          # Create a blank 64MB disk image
+          dd if=/dev/zero of=MyOS-x64.img bs=1M count=64
           
-          echo 'set timeout=0' > iso/boot/grub/grub.cfg
-          echo 'set default=0' >> iso/boot/grub/grub.cfg
-          echo 'menuentry "MyOS" {' >> iso/boot/grub/grub.cfg
-          echo '  multiboot /boot/kernel.bin' >> iso/boot/grub/grub.cfg
-          echo '  boot' >> iso/boot/grub/grub.cfg
-          echo '}' >> iso/boot/grub/grub.cfg
+          # Format as GPT (Simulated via script or mtools)
+          # Note: Real GPT creation usually requires sgdisk or parted
+          
+          mkdir -p iso/boot/grub
+          cp build/installer.bin iso/boot/grub/
+          cp build/target.bin iso/boot/grub/
+          
+          cat <<EOF > iso/boot/grub/grub.cfg
+          set timeout=2
+          set default=0
+          
+          menuentry "MyOS x64 Ultimate (Clean-Room NT Architecture)" {
+              multiboot /boot/installer.bin
+              module /boot/target.bin "target_kernel"
+              boot
+          }
+          EOF
+          
+          grub-mkrescue -o MyOS-x64.iso iso
 
-          grub-mkrescue -o myos.iso iso
-
-      - name: Upload ISO
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: myos
-          path: myos.iso
+          name: MyOS-x64-Distribution
+          path: MyOS-x64.iso
