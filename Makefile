@@ -59,6 +59,10 @@ iso/myos.iso: build/installer.bin build/target.bin
 	cp build/target.bin iso/boot/target.bin
 	echo 'set timeout=0' > iso/boot/grub/grub.cfg
 	echo 'set default=0' >> iso/boot/grub/grub.cfg
+	echo 'insmod all_video' >> iso/boot/grub/grub.cfg
+	echo 'set gfxmode=auto' >> iso/boot/grub/grub.cfg
+	echo 'set gfxpayload=keep' >> iso/boot/grub/grub.cfg
+	echo 'terminal_output console' >> iso/boot/grub/grub.cfg
 	echo 'menuentry "OS Installer" {' >> iso/boot/grub/grub.cfg
 	echo '  multiboot2 /boot/installer.bin' >> iso/boot/grub/grub.cfg
 	echo '  module2 /boot/target.bin "target_kernel"' >> iso/boot/grub/grub.cfg

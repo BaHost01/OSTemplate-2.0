@@ -1,6 +1,6 @@
 ; Multiboot 1 Header
 MB_MAGIC    equ 0x1BADB002
-MB_FLAGS    equ (1 << 0) | (1 << 1)
+MB_FLAGS    equ (1 << 0) | (1 << 1) | (1 << 2) ; Align modules, provide mem info, request video info
 MB_CHECKSUM equ -(MB_MAGIC + MB_FLAGS)
 
 ; Multiboot 2 Header
@@ -14,6 +14,11 @@ align 4
     dd MB_MAGIC
     dd MB_FLAGS
     dd MB_CHECKSUM
+    ; Video mode fields for Multiboot 1
+    dd 0 ; mode_type (0 = linear, 1 = EGA-standard text)
+    dd 80 ; width
+    dd 25 ; height
+    dd 0 ; depth
 
 section .multiboot2
 align 8
@@ -22,8 +27,15 @@ multiboot2_header_start:
     dd MB2_ARCH
     dd MB2_LENGTH
     dd MB2_CHECKSUM
-    ; Tags could go here
+    
+    ; Console Information Request Tag
+    align 8
+    dw 1 ; type = console info request
+    dw 0 ; flags
+    dd 8 ; size
+    
     ; End tag
+    align 8
     dw 0
     dw 0
     dd 8
