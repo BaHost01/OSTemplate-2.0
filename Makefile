@@ -60,8 +60,8 @@ iso/myos.iso: build/installer.bin build/target.bin
 	echo 'set timeout=0' > iso/boot/grub/grub.cfg
 	echo 'set default=0' >> iso/boot/grub/grub.cfg
 	echo 'menuentry "OS Installer" {' >> iso/boot/grub/grub.cfg
-	echo '  multiboot /boot/installer.bin' >> iso/boot/grub/grub.cfg
-	echo '  module /boot/target.bin "target_kernel"' >> iso/boot/grub/grub.cfg
+	echo '  multiboot2 /boot/installer.bin' >> iso/boot/grub/grub.cfg
+	echo '  module2 /boot/target.bin "target_kernel"' >> iso/boot/grub/grub.cfg
 	echo '  boot' >> iso/boot/grub/grub.cfg
 	echo '}' >> iso/boot/grub/grub.cfg
 	# Since we don't have grub-mkrescue, we'll try to use xorriso directly

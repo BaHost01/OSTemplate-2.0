@@ -70,7 +70,7 @@ void kmain(uint32_t magic, struct multiboot_info* info) {
     idt_init();
     vga_puts("--- OS Installer OS ---\n");
     
-    if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+    if (magic != MULTIBOOT_BOOTLOADER_MAGIC && magic != 0x36d76289) {
         vga_puts("Error: Invalid magic number\n");
         return;
     }
