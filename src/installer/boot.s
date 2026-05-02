@@ -23,6 +23,15 @@ multiboot2_header_start:
     dd MB2_LENGTH
     dd MB2_CHECKSUM
     
+    ; Request Framebuffer Tag (Type 5)
+    align 8
+    dw 5 ; type
+    dw 0 ; flags
+    dd 20 ; size
+    dd 1024 ; width
+    dd 768 ; height
+    dd 32 ; depth
+    
     ; End tag
     align 8
     dw 0
@@ -62,7 +71,7 @@ _start:
     mov esp, stack_top
 
     ; 1. Set up paging for long mode transition
-    ; Identity map the first 2MB
+    ; Identity map the first 1GB using 2MB huge pages to cover framebuffer
     
     ; Clear PML4
     mov ecx, 1024
@@ -92,10 +101,15 @@ _start:
     or eax, 0x3 ; Present | Write
     mov [pdp], eax
 
-    ; PD[0] -> 2MB Huge Page
-    mov eax, 0x0
-    or eax, 0x83 ; Present | Write | Huge
-    mov [pd], eax
+    ; Map first 512MB using 2MB huge pages
+    mov ecx, 256
+    mov eax, 0x83 ; Present | Write | Huge
+    mov edi, pd
+.map_loop:
+    mov [edi], eax
+    add eax, 0x200000
+    add edi, 8
+    loop .map_loop
 
     ; 2. Enable PAE
     mov eax, cr4
