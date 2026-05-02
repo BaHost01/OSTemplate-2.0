@@ -64,8 +64,20 @@ void install(struct multiboot_info* info) {
     kprintf("Installation complete! Please reboot from the hard drive.\n");
 }
 
-void kmain(uint32_t magic, struct multiboot_info* info) {
-    vga_init();
+void kmain(uint32_t magic, void* info) {
+    if (magic == 0x36d76289) { // Multiboot 2
+        struct multiboot2_tag* tag;
+        for (tag = (struct multiboot2_tag*)((uint8_t*)info + 8);
+             tag->type != 0;
+             tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
+            if (tag->type == 8) { // Framebuffer tag
+                vga_init_fb((struct multiboot2_tag_framebuffer*)tag);
+            }
+        }
+    } else {
+        vga_init();
+    }
+    
     gdt_init();
     idt_init();
     vga_puts("--- OS Installer OS ---\n");
@@ -75,5 +87,11 @@ void kmain(uint32_t magic, struct multiboot_info* info) {
         return;
     }
 
-    install(info);
+    if (magic == MULTIBOOT_BOOTLOADER_MAGIC) {
+        install((struct multiboot_info*)info);
+    } else {
+        // For now, MB2 install is similar but needs structure mapping
+        // install((struct multiboot_info*)info); 
+        vga_puts("MB2 Boot detected. Installer running in fallback.\n");
+    }
 }

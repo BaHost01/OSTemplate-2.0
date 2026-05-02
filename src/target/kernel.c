@@ -72,7 +72,20 @@ void shell() {
  * Initializes core hardware subsystems, memory management, and executive managers
  * before handing control to the user interface.
  */
-void kmain(uint32_t magic, struct multiboot_info* info) {
+void kmain(uint32_t magic, void* info) {
+    if (magic == 0x36d76289) { // Multiboot 2
+        struct multiboot2_tag* tag;
+        for (tag = (struct multiboot2_tag*)((uint8_t*)info + 8);
+             tag->type != 0;
+             tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
+            if (tag->type == 8) { // Framebuffer tag
+                vga_init_fb((struct multiboot2_tag_framebuffer*)tag);
+            }
+        }
+    } else {
+        vga_init();
+    }
+    
     (void)magic; (void)info;
 
     /* Initialize critical display and communication interfaces */

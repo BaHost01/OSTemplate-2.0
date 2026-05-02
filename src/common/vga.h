@@ -4,7 +4,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "multiboot.h"
+
 void vga_init();
+void vga_init_fb(struct multiboot2_tag_framebuffer* tag);
 void vga_putc(char c);
 void vga_puts(const char* s);
 void vga_clear();

@@ -1,84 +1,102 @@
 #include "vga.h"
-#include "io.h"
+#include "multiboot.h"
 #include "string.h"
 
-static uint16_t* vga_buffer = (uint16_t*)0xB8000;
-static const size_t VGA_WIDTH = 80;
-static const size_t VGA_HEIGHT = 25;
+static uint32_t* fb_addr = NULL;
+static uint32_t fb_width = 0;
+static uint32_t fb_height = 0;
+static uint32_t fb_pitch = 0;
+static uint8_t fb_bpp = 0;
 
-static size_t vga_row;
-static size_t vga_col;
-static uint8_t vga_color;
+static size_t cursor_x = 0;
+static size_t cursor_y = 0;
+static uint32_t fg_color = 0xFFFFFFFF; // White
+static uint32_t bg_color = 0x00000000; // Black
 
-static void update_cursor() {
-    uint16_t pos = vga_row * VGA_WIDTH + vga_col;
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, (uint8_t)(pos & 0xFF));
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+// Basic 8x16 font (simplified from Linux font_8x16.c)
+extern unsigned char font_8x16[4096];
+
+static void putpixel(uint32_t x, uint32_t y, uint32_t color) {
+    if (x >= fb_width || y >= fb_height) return;
+    fb_addr[y * (fb_pitch / 4) + x] = color;
 }
 
-void vga_init() {
-    vga_row = 0;
-    vga_col = 0;
-    vga_color = 0x07;
+static void draw_char(char c, uint32_t x, uint32_t y, uint32_t fg, uint32_t bg) {
+    for (int i = 0; i < 16; i++) {
+        uint8_t row = font_8x16[(uint8_t)c * 16 + i];
+        for (int j = 0; j < 8; j++) {
+            if (row & (0x80 >> j)) {
+                putpixel(x + j, y + i, fg);
+            } else {
+                putpixel(x + j, y + i, bg);
+            }
+        }
+    }
+}
+
+void vga_init_fb(struct multiboot2_tag_framebuffer* tag) {
+    fb_addr = (uint32_t*)tag->framebuffer_addr;
+    fb_width = tag->framebuffer_width;
+    fb_height = tag->framebuffer_height;
+    fb_pitch = tag->framebuffer_pitch;
+    fb_bpp = tag->framebuffer_bpp;
     vga_clear();
 }
 
-void vga_set_color(uint8_t fg, uint8_t bg) {
-    vga_color = fg | (bg << 4);
+void vga_init() {
+    // Legacy init, should ideally be replaced by vga_init_fb
+    // For now we keep it to avoid breaking compilation if kmain isn't updated
 }
 
 void vga_clear() {
-    for (size_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
-        vga_buffer[i] = (uint16_t)' ' | ((uint16_t)vga_color << 8);
+    if (!fb_addr) return;
+    for (uint32_t y = 0; y < fb_height; y++) {
+        for (uint32_t x = 0; x < fb_width; x++) {
+            putpixel(x, y, bg_color);
+        }
     }
-    vga_row = 0;
-    vga_col = 0;
-    update_cursor();
-}
-
-static void scroll() {
-    for (size_t i = 0; i < (VGA_HEIGHT - 1) * VGA_WIDTH; i++) {
-        vga_buffer[i] = vga_buffer[i + VGA_WIDTH];
-    }
-    for (size_t i = (VGA_HEIGHT - 1) * VGA_WIDTH; i < VGA_HEIGHT * VGA_WIDTH; i++) {
-        vga_buffer[i] = (uint16_t)' ' | ((uint16_t)vga_color << 8);
-    }
-    vga_row = VGA_HEIGHT - 1;
+    cursor_x = 0;
+    cursor_y = 0;
 }
 
 void vga_putc(char c) {
+    if (!fb_addr) return;
+
     if (c == '\n') {
-        vga_col = 0;
-        vga_row++;
-    } else if (c == '\b') {
-        if (vga_col > 0) {
-            vga_col--;
-            const size_t index = vga_row * VGA_WIDTH + vga_col;
-            vga_buffer[index] = (uint16_t)' ' | ((uint16_t)vga_color << 8);
-        }
+        cursor_x = 0;
+        cursor_y += 16;
     } else if (c == '\r') {
-        vga_col = 0;
+        cursor_x = 0;
     } else {
-        const size_t index = vga_row * VGA_WIDTH + vga_col;
-        vga_buffer[index] = (uint16_t)c | ((uint16_t)vga_color << 8);
-        vga_col++;
+        draw_char(c, cursor_x, cursor_y, fg_color, bg_color);
+        cursor_x += 8;
     }
 
-    if (vga_col >= VGA_WIDTH) {
-        vga_col = 0;
-        vga_row++;
+    if (cursor_x >= fb_width) {
+        cursor_x = 0;
+        cursor_y += 16;
     }
 
-    if (vga_row >= VGA_HEIGHT) {
-        scroll();
+    if (cursor_y + 16 >= fb_height) {
+        // Scrolling implementation could be added here
+        vga_clear(); // Simple clear for now
     }
-    update_cursor();
 }
 
 void vga_puts(const char* s) {
     while (*s) {
         vga_putc(*s++);
     }
+}
+
+void vga_set_color(uint8_t fg, uint8_t bg) {
+    // Basic mapping from 4-bit VGA colors to 32-bit RGB
+    uint32_t colors[] = {
+        0x00000000, 0x000000AA, 0x0000AA00, 0x0000AAAA,
+        0x00AA0000, 0x00AA00AA, 0x00AA5500, 0x00AAAAAA,
+        0x00555555, 0x005555FF, 0x0055FF55, 0x0055FFFF,
+        0x00FF5555, 0x00FF55FF, 0x00FFFF55, 0x00FFFFFF
+    };
+    fg_color = colors[fg & 0x0F];
+    bg_color = colors[bg & 0x0F];
 }

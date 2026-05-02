@@ -6,7 +6,7 @@ CFLAGS = -target x86_64-unknown-none-elf -march=x86-64 -ffreestanding -O3 -Wall 
 ASFLAGS = -f elf64
 LDFLAGS = -m elf_x86_64 -T src/common/linker.ld --gc-sections
 
-COMMON_OBJS = build/common/vga.o build/common/gdt.o build/common/gdt_flush.o \
+COMMON_OBJS = build/common/vga.o build/common/font.o build/common/gdt.o build/common/gdt_flush.o \
               build/common/idt.o build/common/interrupts.o build/common/isr_handler.o \
               build/common/pmm.o build/common/paging.o build/common/vfs.o build/common/ata.o build/common/pci.o \
               build/common/serial.o build/common/stdio.o build/common/string.o build/common/keyboard.o build/common/kheap.o
