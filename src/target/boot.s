@@ -23,13 +23,6 @@ multiboot2_header_start:
     dd MB2_LENGTH
     dd MB2_CHECKSUM
     
-    ; Entry Address Tag (Type 3)
-    align 8
-    dw 3 ; type
-    dw 0 ; flags
-    dd 12 ; size
-    dd _start ; entry_addr (32-bit physical address)
-    
     ; End tag
     align 8
     dw 0
