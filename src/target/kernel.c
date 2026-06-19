@@ -10,6 +10,8 @@
 #include "../common/stdio.h"
 #include "../common/serial.h"
 #include "../common/vfs.h"
+#include "../common/initrd.h"
+#include "../common/task.h"
 #include "edit.h"
 #include "pkg.h"
 #include "subsystem.h"
@@ -18,61 +20,14 @@
 #include "path.h"
 
 /*
- * shell - Primary interactive command processor.
- * Operates in a continuous loop, parsing input and dispatching to 
- * internal kernel functions or future Ring 3 processes.
- */
-void shell() {
-    char line[80];
-    int i = 0;
-
-    vga_puts("> ");
-    while (1) {
-        char c = keyboard_get_char();
-        if (c == '\n') {
-            line[i] = '\0';
-            vga_putc('\n');
-            
-            if (strlen(line) > 0) {
-                if (strcmp(line, "help") == 0) {
-                    vga_puts("Available commands: help, cls, version, edit, desktop, pkg install <name>\n");
-                } else if (strcmp(line, "cls") == 0) {
-                    vga_clear();
-                } else if (strcmp(line, "desktop") == 0) {
-                    desktop_show();
-                } else if (strcmp(line, "version") == 0) {
-                    vga_puts("SimpleOS x64 Ultimate v1.0 (Clean-Room NT Architecture)\n");
-                } else if (strcmp(line, "edit") == 0) {
-                    editor_main();
-                } else if (strncmp(line, "pkg install ", 12) == 0) {
-                    pkg_install(line + 12);
-                } else {
-                    kprintf("Command not found: %s\n", line);
-                }
-            }
-            
-            i = 0;
-            vga_puts("> ");
-        } else if (c == '\b') {
-            if (i > 0) {
-                i--;
-                vga_putc('\b');
-            }
-        } else if (c >= 32 && c <= 126) {
-            if (i < 79) {
-                line[i++] = c;
-                vga_putc(c);
-            }
-        }
-    }
-}
-
-/*
  * kmain - The high-level entry point for the x86_64 Long Mode Kernel.
  * Initializes core hardware subsystems, memory management, and executive managers
  * before handing control to the user interface.
  */
 void kmain(uint32_t magic, void* info) {
+    uint64_t initrd_loc = 0;
+    uint32_t initrd_size = 0;
+
     if (magic == 0x36d76289) { // Multiboot 2
         struct multiboot2_tag* tag;
         for (tag = (struct multiboot2_tag*)((uint8_t*)info + 8);
@@ -80,13 +35,26 @@ void kmain(uint32_t magic, void* info) {
              tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
             if (tag->type == 8) { // Framebuffer tag
                 vga_init_fb((struct multiboot2_tag_framebuffer*)tag);
+            } else if (tag->type == 3) { // Module tag
+                // Cast to module tag
+                struct {
+                    uint32_t type;
+                    uint32_t size;
+                    uint32_t mod_start;
+                    uint32_t mod_end;
+                    char string[];
+                } *mod = (void*)tag;
+                
+                // Assuming the first module is our initrd
+                if (initrd_loc == 0) {
+                    initrd_loc = mod->mod_start;
+                    initrd_size = mod->mod_end - mod->mod_start;
+                }
             }
         }
     } else {
         vga_init();
     }
-    
-    (void)magic; (void)info;
 
     /* Initialize critical display and communication interfaces */
     vga_init();
@@ -108,13 +76,23 @@ void kmain(uint32_t magic, void* info) {
     IoInit();
     path_init();
     subsystem_init();
+    task_init();
     
     serial_puts("[Kernel] SimpleOS x64 Executive Boot Sequence Complete\n");
     
     vga_set_color(0x0E, 0x00); // Gold branding
     vga_puts("--- SimpleOS x64 Ultimate - High Performance Kernel ---\n");
     vga_puts("Architecture: x86_64 Long Mode | Boot: GPT/UEFI Ready\n");
-    vga_puts("System initialized. Type 'desktop' for UI or 'help' for commands.\n");
     
-    shell();
+    if (initrd_loc) {
+        initrd_init(initrd_loc, initrd_size);
+        vga_puts("Jumping to userland (/bin/init)...\n");
+        task_exec("/bin/init");
+    } else {
+        vga_puts("CRITICAL ERROR: No initrd module loaded. Cannot start userland.\n");
+    }
+    
+    while(1) {
+        asm volatile("hlt");
+    }
 }
